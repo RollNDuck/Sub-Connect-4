@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - main
+      - v1
   pull_request:
     branches:
       - main
+      - v1
   workflow_dispatch:
 
 jobs:
@@ -35,4 +37,4 @@ jobs:
         run: npm install --global pyright
 
       - name: Run Pyright type checker
-        run: pyright   
+        run: pyright
