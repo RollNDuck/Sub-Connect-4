@@ -1,7 +1,8 @@
-from model import ConnectTacToeModel, StrongGravityTokenPhysics, WeakGravityTokenPhysics, FloatingTokenPhysics, TicTacToeWinCondition, NotConnectFourWinCondition
+from model import ConnectTacToeModel, StrongGravityTokenPhysics, WeakGravityTokenPhysics, FloatingTokenPhysics, TicTacToeWinCondition, NotConnectFourWinCondition, WinCondition, TokenPhysics
 from common_types import WinConditionType, TokenPhysicsType
 
 def make(win_condition_type: WinConditionType, token_physics_type: TokenPhysicsType) -> ConnectTacToeModel:
+    win_condition: WinCondition
     match win_condition_type:
         case WinConditionType.NOT_CONNECT_FOUR:
             win_condition = NotConnectFourWinCondition()
@@ -10,6 +11,7 @@ def make(win_condition_type: WinConditionType, token_physics_type: TokenPhysicsT
         case _:
             raise ValueError("Invalid Win Condition Type")
 
+    token_physics: TokenPhysics
     match token_physics_type:
         case TokenPhysicsType.WEAK_GRAVITY:
             token_physics = WeakGravityTokenPhysics()

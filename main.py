@@ -11,19 +11,25 @@ if __name__ == "__main__":
     parser.add_argument("-p", choices = ["floating", "strong", "weak"])
     args = parser.parse_args()
 
+    win_condition_type: WinConditionType
     match args.w:
         case "notconnectfour":
             win_condition_type = WinConditionType.NOT_CONNECT_FOUR
-        case _:
+        case "tictactoe":
             win_condition_type = WinConditionType.TIC_TAC_TOE
+        case _:
+            raise ValueError(f"Invalid win condition: {args.w}")
 
+    token_physics_type: TokenPhysicsType
     match args.p:
         case "floating":
             token_physics_type = TokenPhysicsType.FLOATING
         case "strong":
             token_physics_type = TokenPhysicsType.STRONG_GRAVITY
-        case _:
+        case "weak":
             token_physics_type = TokenPhysicsType.WEAK_GRAVITY
+        case _:
+            raise ValueError(f"Invalid physics type: {args.p}")
 
     model = make(win_condition_type, token_physics_type)
     view = ConnectTacToeView()

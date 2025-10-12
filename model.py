@@ -207,17 +207,17 @@ class WeakGravityTokenPhysics:
 
         # We'll use a more efficient approach:
         # For each column, we'll calculate which tokens should move
-        moves = []
+        moves: list[tuple[int, int, int, int]] = []
 
         # Process each column independently
         for col in range(cols):
             # For this column, we need to determine which tokens can move
             # We'll use a set to track which rows will have tokens after movement
-            occupied_after_move = set()
+            occupied_after_move: set[int] = set()
 
             # First, find all tokens that are fixed (can't move)
             # Tokens in the bottom row or with a token directly below them that can't move
-            fixed_tokens = set()
+            fixed_tokens: set[tuple[int, int]] = set()
 
             # Start from the bottom and work up
             for row in range(rows - 1, -1, -1):
@@ -237,14 +237,14 @@ class WeakGravityTokenPhysics:
         # Apply all moves simultaneously
         if moves:
             # Create a new grid state
-            new_grid = [[None for _ in range(cols)] for _ in range(rows)]
+            new_grid: list[list[Player | None]] = [[None for _ in range(cols)] for _ in range(rows)]
 
             # First, copy all tokens that aren't moving
             for row in range(rows):
                 for col in range(cols):
                     if grid[row][col] is not None:
                         # Check if this token is moving
-                        is_moving = False
+                        is_moving: bool = False
                         for from_row, from_col, _, _ in moves:
                             if from_row == row and from_col == col:
                                 is_moving = True

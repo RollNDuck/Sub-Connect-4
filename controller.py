@@ -34,7 +34,7 @@ class ConnectTacToeController:
             self._model.choose_cell(row, col)
 
     def draw(self) -> None:
-        grid: list[list[Player | None]] = self._model.get_grid
+        grid: list[list[Player | None]] = self._model.get_grid()
         self._view.draw_game(
             grid,
             self._model.current_player,
