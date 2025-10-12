@@ -178,62 +178,94 @@ class StrongGravityTokenPhysics:
             self._animating = False
 
 class WeakGravityTokenPhysics:
-    """All tokens move down one cell simultaneously per turn."""
+    """All tokens move down simultaneously, one step per turn, with cascading."""
     def __init__(self) -> None:
         self._animating: bool = False
-        self._animation_started: bool = False  # New flag to track if we've started animating this turn
 
     def apply_physics(self, grid: list[list[Player | None]]) -> None:
-        # Only start animation if we haven't already started it this turn
-        if not self._animation_started:
-            rows: int = len(grid)
-            cols: int = len(grid[0])
+        rows: int = len(grid)
+        cols: int = len(grid[0])
 
-            # Check if ANY token can fall
-            can_fall: bool = False
-            for row in range(rows - 1):
-                for col in range(cols):
-                    if grid[row][col] is not None and grid[row + 1][col] is None:
-                        can_fall = True
-                        break
-                if can_fall:
+        # Check if ANY token can fall
+        can_fall: bool = False
+        for row in range(rows - 1):
+            for col in range(cols):
+                if grid[row][col] is not None and grid[row + 1][col] is None:
+                    can_fall = True
                     break
-
             if can_fall:
-                self._animating = True
-                self._animation_started = True
+                break
+
+        if can_fall:
+            self._animating = True
 
     def is_animating(self) -> bool:
         return self._animating
 
     def step_animation(self, grid: list[list[Player | None]]) -> None:
-        """Move all tokens down exactly one cell simultaneously."""
+        """Move all tokens down one cell simultaneously with proper cascading."""
         rows: int = len(grid)
         cols: int = len(grid[0])
 
-        # Create snapshot of current state
-        old_grid: list[list[Player | None]] = [row[:] for row in grid]
+        # We'll use a more efficient approach:
+        # For each column, we'll calculate which tokens should move
+        moves = []
 
-        # Clear grid
-        for row in range(rows):
-            for col in range(cols):
-                grid[row][col] = None
+        # Process each column independently
+        for col in range(cols):
+            # For this column, we need to determine which tokens can move
+            # We'll use a set to track which rows will have tokens after movement
+            occupied_after_move = set()
 
-        # Process each token based on OLD grid state
-        for row in range(rows):
-            for col in range(cols):
-                if old_grid[row][col] is not None:
-                    # Check if can move down exactly ONE cell (based on OLD grid)
-                    if row < rows - 1 and old_grid[row + 1][col] is None:
-                        # Move down exactly ONE cell
-                        grid[row + 1][col] = old_grid[row][col]
-                    else:
-                        # Stay in place
-                        grid[row][col] = old_grid[row][col]
+            # First, find all tokens that are fixed (can't move)
+            # Tokens in the bottom row or with a token directly below them that can't move
+            fixed_tokens = set()
 
-        # For Weak Gravity, we ONLY move one step per turn, so stop animation after one step
+            # Start from the bottom and work up
+            for row in range(rows - 1, -1, -1):
+                if grid[row][col] is not None:
+                    # Check if this token is fixed
+                    if row == rows - 1 or (row + 1, col) in fixed_tokens:
+                        fixed_tokens.add((row, col))
+                        occupied_after_move.add(row)
+
+            # Now, all other tokens will move down one cell
+            for row in range(rows - 1):
+                if grid[row][col] is not None and (row, col) not in fixed_tokens:
+                    # This token can move down
+                    moves.append((row, col, row + 1, col))
+                    occupied_after_move.add(row + 1)
+
+        # Apply all moves simultaneously
+        if moves:
+            # Create a new grid state
+            new_grid = [[None for _ in range(cols)] for _ in range(rows)]
+
+            # First, copy all tokens that aren't moving
+            for row in range(rows):
+                for col in range(cols):
+                    if grid[row][col] is not None:
+                        # Check if this token is moving
+                        is_moving = False
+                        for from_row, from_col, _, _ in moves:
+                            if from_row == row and from_col == col:
+                                is_moving = True
+                                break
+                        if not is_moving:
+                            new_grid[row][col] = grid[row][col]
+
+            # Then place all moving tokens in their new positions
+            for from_row, from_col, to_row, to_col in moves:
+                new_grid[to_row][to_col] = grid[from_row][from_col]
+
+            # Update the actual grid
+            for row in range(rows):
+                for col in range(cols):
+                    grid[row][col] = new_grid[row][col]
+
+        # For Weak Gravity, we only do one step of movement per turn
+        # So we always stop animating after this step
         self._animating = False
-        self._animation_started = False  # Reset for next turn
 
 class ConnectTacToeModel:
     def __init__(self, win_condition: WinCondition, token_physics: TokenPhysics) -> None:
