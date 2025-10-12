@@ -1,8 +1,14 @@
+# model.py - Complete updated version
+
 from common_types import Player
 from typing import Protocol
 
 class WinCondition(Protocol):
     def is_winner(self, grid: list[list[Player | None]]) -> Player | None:
+        ...
+
+    def check_both_winners(self, grid: list[list[Player | None]]) -> tuple[bool, bool]:
+        """Returns (P1_wins, P2_wins) tuple for detecting simultaneous wins."""
         ...
 
 class TokenPhysics(Protocol):
@@ -17,47 +23,79 @@ class TokenPhysics(Protocol):
 
 class TicTacToeWinCondition:
     def is_winner(self, grid: list[list[Player | None]]) -> Player | None:
-        players: list[Player] = [Player.P1, Player.P2]
-        for player in players:
-            # Check rows
-            for row in range(6):
-                count: int = 0
-                for col in range(7):
-                    if grid[row][col] == player:
-                        count += 1
-                if count == 7:
-                    return player
+        p1_wins, p2_wins = self.check_both_winners(grid)
 
-            # Check columns
+        if p1_wins and p2_wins:
+            return None  # Both won - handled as special case in model
+        elif p1_wins:
+            return Player.P1
+        elif p2_wins:
+            return Player.P2
+        else:
+            return None
+
+    def check_both_winners(self, grid: list[list[Player | None]]) -> tuple[bool, bool]:
+        """Returns (P1_wins, P2_wins) for detecting simultaneous wins."""
+        p1_wins: bool = self._check_player_wins(grid, Player.P1)
+        p2_wins: bool = self._check_player_wins(grid, Player.P2)
+        return (p1_wins, p2_wins)
+
+    def _check_player_wins(self, grid: list[list[Player | None]], player: Player) -> bool:
+        """Check if a specific player has won."""
+        # Check rows
+        for row in range(6):
+            count: int = 0
             for col in range(7):
-                count: int = 0
-                for row in range(6):
-                    if grid[row][col] == player:
-                        count += 1
-                if count == 6:
-                    return player
+                if grid[row][col] == player:
+                    count += 1
+            if count == 7:
+                return True
 
-        return None
+        # Check columns
+        for col in range(7):
+            count: int = 0
+            for row in range(6):
+                if grid[row][col] == player:
+                    count += 1
+            if count == 6:
+                return True
+
+        return False
 
 class NotConnectFourWinCondition:
     """Win when 4+ tokens form a connected group (edge-adjacent, no diagonals)."""
     def is_winner(self, grid: list[list[Player | None]]) -> Player | None:
+        p1_wins, p2_wins = self.check_both_winners(grid)
+
+        if p1_wins and p2_wins:
+            return None  # Both won - handled as special case in model
+        elif p1_wins:
+            return Player.P1
+        elif p2_wins:
+            return Player.P2
+        else:
+            return None
+
+    def check_both_winners(self, grid: list[list[Player | None]]) -> tuple[bool, bool]:
+        """Returns (P1_wins, P2_wins) for detecting simultaneous wins."""
+        p1_wins: bool = self._check_player_wins(grid, Player.P1)
+        p2_wins: bool = self._check_player_wins(grid, Player.P2)
+        return (p1_wins, p2_wins)
+
+    def _check_player_wins(self, grid: list[list[Player | None]], player: Player) -> bool:
+        """Check if a specific player has a winning configuration."""
         rows: int = len(grid)
         cols: int = len(grid[0])
+        visited: list[list[bool]] = [[False for _ in range(cols)] for _ in range(rows)]
 
-        for player in [Player.P1, Player.P2]:
-            # Use flood fill to find connected components
-            visited: list[list[bool]] = [[False for _ in range(cols)] for _ in range(rows)]
+        for start_row in range(rows):
+            for start_col in range(cols):
+                if grid[start_row][start_col] == player and not visited[start_row][start_col]:
+                    group_size: int = self._bfs_count(grid, visited, start_row, start_col, player, rows, cols)
+                    if group_size >= 4:
+                        return True
 
-            for start_row in range(rows):
-                for start_col in range(cols):
-                    if grid[start_row][start_col] == player and not visited[start_row][start_col]:
-                        # Find size of connected component using BFS
-                        group_size: int = self._bfs_count(grid, visited, start_row, start_col, player, rows, cols)
-                        if group_size >= 4:
-                            return player
-
-        return None
+        return False
 
     def _bfs_count(self, grid: list[list[Player | None]], visited: list[list[bool]],
                    start_row: int, start_col: int, player: Player, rows: int, cols: int) -> int:
@@ -201,6 +239,7 @@ class ConnectTacToeModel:
         self._win_condition: WinCondition = win_condition
         self._token_physics: TokenPhysics = token_physics
         self._pending_turn_end: bool = False
+        self._both_players_won: bool = False
 
     @property
     def current_player(self) -> Player:
@@ -215,6 +254,11 @@ class ConnectTacToeModel:
         return self._is_game_done
 
     @property
+    def both_players_won(self) -> bool:
+        """Returns True if both players won simultaneously."""
+        return self._both_players_won
+
+    @property
     def is_animating(self) -> bool:
         return self._token_physics.is_animating()
 
@@ -223,7 +267,7 @@ class ConnectTacToeModel:
         if self._token_physics.is_animating():
             self._token_physics.step_animation(self._grid)
 
-            # Check if animation finished
+            # When animation finishes, check win condition and end turn
             if not self._token_physics.is_animating() and self._pending_turn_end:
                 self._finish_turn()
 
@@ -235,28 +279,48 @@ class ConnectTacToeModel:
         if self._grid[row][col] is not None:
             return False
 
+        # Place token on grid
         self._grid[row][col] = self._current_player
+
+        # Apply physics (may start animation)
         self._token_physics.apply_physics(self._grid)
 
-        # If animating, defer turn end
+        # IMPORTANT: Win condition is checked ONLY after physics complete
+        # If animating, defer win check and turn end until animation finishes
         if self._token_physics.is_animating():
             self._pending_turn_end = True
         else:
+            # No animation needed, check win condition immediately
             self._finish_turn()
 
         return True
 
     def _finish_turn(self) -> None:
-        """Check win condition and switch players."""
-        self._pending_turn_end = False
-        winner: Player | None = self._win_condition.is_winner(self._grid)
+        """Check win condition and switch players.
 
-        if winner is not None:
-            self._winner = winner
+        This is ONLY called after token physics have been fully applied.
+        """
+        self._pending_turn_end = False
+
+        # Check for simultaneous wins first
+        p1_wins, p2_wins = self._win_condition.check_both_winners(self._grid)
+
+        if p1_wins and p2_wins:
+            # Both players won simultaneously
+            self._both_players_won = True
+            self._is_game_done = True
+            self._winner = None  # No single winner
+        elif p1_wins:
+            self._winner = Player.P1
+            self._is_game_done = True
+        elif p2_wins:
+            self._winner = Player.P2
             self._is_game_done = True
         elif self.is_grid_full(self._grid):
+            # Draw - no winner and grid is full
             self._is_game_done = True
         else:
+            # Switch to other player
             if self._current_player == Player.P1:
                 self._current_player = Player.P2
             else:

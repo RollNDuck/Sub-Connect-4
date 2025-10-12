@@ -35,4 +35,10 @@ class ConnectTacToeController:
 
     def draw(self) -> None:
         grid: list[list[Player | None]] = self._model.get_grid
-        self._view.draw_game(grid, self._model.current_player, self._model.winner, self._model.is_game_done)
+        self._view.draw_game(
+            grid,
+            self._model.current_player,
+            self._model.winner,
+            self._model.is_game_done,
+            self._model.both_players_won
+        )

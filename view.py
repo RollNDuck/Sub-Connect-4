@@ -1,20 +1,21 @@
 import pyxel
 from common_types import Player
+from typing import Callable
 
 class ConnectTacToeView:
     def __init__(self) -> None:
-        self.screen_width = 200
-        self.screen_height = 200
+        self.screen_width: int = 200
+        self.screen_height: int = 200
 
-        self.row = 6
-        self.col = 7
+        self.row: int = 6
+        self.col: int = 7
 
-        self.cell_size = 25
-        self.grid_height = self.cell_size * self.row
-        self.grid_width = self.cell_size * self.col
+        self.cell_size: int = 25
+        self.grid_height: int = self.cell_size * self.row
+        self.grid_width: int = self.cell_size * self.col
 
-        self.grid_x = (200 - self.grid_width) // 2
-        self.grid_y = (200 - self.grid_height) // 2 + 15
+        self.grid_x: int = (200 - self.grid_width) // 2
+        self.grid_y: int = (200 - self.grid_height) // 2 + 15
 
         self.player1_color: int = 2
         self.player2_color: int = 5
@@ -22,17 +23,13 @@ class ConnectTacToeView:
         pyxel.init(self.screen_width, self.screen_height)
         pyxel.mouse(True)
 
-    def start_game(self, update, draw) -> None:
+    def start_game(self, update: Callable[[], None], draw: Callable[[], None]) -> None:
         pyxel.run(update, draw)
 
-    # def update(self):
-    #     pyxel.cls(0)
-
-    def draw_game(self, grid: list[list[Player | None]], cur_player: Player, winner: Player | None, game_over: bool) -> None:
+    def draw_game(self, grid: list[list[Player | None]], cur_player: Player, winner: Player | None, game_over: bool, both_won: bool) -> None:
         pyxel.cls(0)
         self.draw_grid(grid)
-        self.draw_messages(cur_player, winner, game_over)
-
+        self.draw_messages(cur_player, winner, game_over, both_won)
 
     def draw_grid(self, grid: list[list[Player | None]]) -> None:
         for row in range(self.row):
@@ -75,26 +72,27 @@ class ConnectTacToeView:
         return (self.grid_x <= x <= self.grid_x + self.grid_width and
                 self.grid_y <= y <= self.grid_y + self.grid_height)
 
-    def draw_messages(self, cur_player: Player, winner: Player | None, game_over: bool) -> None:
+    def draw_messages(self, cur_player: Player, winner: Player | None, game_over: bool, both_won: bool) -> None:
         y_coord: int = 15
-        if not game_over: #current player turn message
+
+        if not game_over:  # current player turn message
             player_color: int = self._cur_player_color(cur_player)
             turn_message: str = f"Your turn, {str(cur_player)}!"
-            x_coord: int = (self.screen_width // 2) - len(turn_message)*2
+            x_coord: int = (self.screen_width // 2) - len(turn_message) * 2
             pyxel.text(x_coord, y_coord, turn_message, player_color)
 
-        elif winner is not None: #winner message
+        elif both_won:  # Both players won simultaneously
+            message: str = "Both players won!"
+            x_coord: int = (self.screen_width // 2) - len(message) * 2
+            pyxel.text(x_coord, y_coord, message, 10)  # White color
+
+        elif winner is not None:  # Single winner message
             winner_color: int = self._cur_player_color(winner)
             win_message: str = f"The winner is, {str(winner)}!"
-            x_coord: int = (self.screen_width // 2) - len(win_message)*2
+            x_coord: int = (self.screen_width // 2) - len(win_message) * 2
             pyxel.text(x_coord, y_coord, win_message, winner_color)
 
-        #elif for both winners at the same time
-
-        else: #no winner / no more occupied cells
-            message = f"No winner!"
-            x_coord: int = (self.screen_width // 2) - len(message)*2
-            pyxel.text(x_coord, y_coord, message, 8) #red/pinkish
-
-
-
+        else:  # Draw - no winner and grid full
+            message: str = "No winner!"
+            x_coord: int = (self.screen_width // 2) - len(message) * 2
+            pyxel.text(x_coord, y_coord, message, 8)  # red/pinkish
