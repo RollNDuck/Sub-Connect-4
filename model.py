@@ -206,21 +206,32 @@ class WeakGravityTokenPhysics:
         return self._animating
 
     def step_animation(self, grid: list[list[Player | None]]) -> None:
+        """Move all tokens down one cell simultaneously.
+
+        Key: Tokens check the ORIGINAL grid state, so tokens can 'pass through'
+        each other when both are falling.
+        """
         rows: int = len(grid)
         cols: int = len(grid[0])
 
+        # Create new grid based on ORIGINAL grid state (simultaneous movement)
         new_grid: list[list[Player | None]] = [[None for _ in range(cols)] for _ in range(rows)]
         moved: bool = False
 
+        # Process from BOTTOM to TOP to handle the simultaneous movement correctly
         for row in range(rows - 1, -1, -1):
             for col in range(cols):
                 if grid[row][col] is not None:
+                    # Check if this token can move down based on ORIGINAL grid
                     if row < rows - 1 and grid[row + 1][col] is None:
+                        # Token moves down one cell
                         new_grid[row + 1][col] = grid[row][col]
                         moved = True
                     else:
+                        # Token stays in place
                         new_grid[row][col] = grid[row][col]
 
+        # Update grid with new state
         for row in range(rows):
             for col in range(cols):
                 grid[row][col] = new_grid[row][col]
