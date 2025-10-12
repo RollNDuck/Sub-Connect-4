@@ -6,9 +6,19 @@ from controller import ConnectTacToeController
 from tester import make
 
 if __name__ == "__main__":
-    parser = ArgumentParser()
-    parser.add_argument("-w", choices = ["notconnectfour", "tictactoe"])
-    parser.add_argument("-p", choices = ["floating", "strong", "weak"])
+    parser = ArgumentParser(description="Connect-Tac-Toe Game")
+    parser.add_argument(
+        "-w",
+        choices=["notconnectfour", "tictactoe"],
+        required=True,
+        help="Win condition: 'notconnectfour' or 'tictactoe'"
+    )
+    parser.add_argument(
+        "-p",
+        choices=["floating", "strong", "weak"],
+        required=True,
+        help="Token physics: 'floating', 'strong', or 'weak'"
+    )
     args = parser.parse_args()
 
     win_condition_type: WinConditionType
