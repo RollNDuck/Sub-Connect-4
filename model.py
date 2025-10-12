@@ -1,5 +1,3 @@
-# model.py - Complete updated version
-
 from common_types import Player
 from typing import Protocol
 
