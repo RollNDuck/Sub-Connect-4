@@ -149,13 +149,9 @@ class StrongGravityTokenPhysics:
         can_fall: bool = False
         for col in range(cols):
             for row in range(rows - 1):
-                if grid[row][col] is not None:
-                    for check_row in range(row + 1, rows):
-                        if grid[check_row][col] is None:
-                            can_fall = True
-                            break
-                    if can_fall:
-                        break
+                if grid[row][col] is not None and grid[row + 1][col] is None:
+                    can_fall = True
+                    break
             if can_fall:
                 break
 
@@ -182,62 +178,62 @@ class StrongGravityTokenPhysics:
             self._animating = False
 
 class WeakGravityTokenPhysics:
-    """All tokens move down one cell simultaneously if possible."""
+    """All tokens move down one cell simultaneously per turn."""
     def __init__(self) -> None:
         self._animating: bool = False
+        self._animation_started: bool = False  # New flag to track if we've started animating this turn
 
     def apply_physics(self, grid: list[list[Player | None]]) -> None:
-        rows: int = len(grid)
-        cols: int = len(grid[0])
+        # Only start animation if we haven't already started it this turn
+        if not self._animation_started:
+            rows: int = len(grid)
+            cols: int = len(grid[0])
 
-        can_fall: bool = False
-        for row in range(rows - 1):
-            for col in range(cols):
-                if grid[row][col] is not None and grid[row + 1][col] is None:
-                    can_fall = True
+            # Check if ANY token can fall
+            can_fall: bool = False
+            for row in range(rows - 1):
+                for col in range(cols):
+                    if grid[row][col] is not None and grid[row + 1][col] is None:
+                        can_fall = True
+                        break
+                if can_fall:
                     break
-            if can_fall:
-                break
 
-        if can_fall:
-            self._animating = True
+            if can_fall:
+                self._animating = True
+                self._animation_started = True
 
     def is_animating(self) -> bool:
         return self._animating
 
     def step_animation(self, grid: list[list[Player | None]]) -> None:
-        """Move all tokens down one cell simultaneously.
-
-        Key: Tokens check the ORIGINAL grid state, so tokens can 'pass through'
-        each other when both are falling.
-        """
+        """Move all tokens down exactly one cell simultaneously."""
         rows: int = len(grid)
         cols: int = len(grid[0])
 
-        # Create new grid based on ORIGINAL grid state (simultaneous movement)
-        new_grid: list[list[Player | None]] = [[None for _ in range(cols)] for _ in range(rows)]
-        moved: bool = False
+        # Create snapshot of current state
+        old_grid: list[list[Player | None]] = [row[:] for row in grid]
 
-        # Process from BOTTOM to TOP to handle the simultaneous movement correctly
-        for row in range(rows - 1, -1, -1):
-            for col in range(cols):
-                if grid[row][col] is not None:
-                    # Check if this token can move down based on ORIGINAL grid
-                    if row < rows - 1 and grid[row + 1][col] is None:
-                        # Token moves down one cell
-                        new_grid[row + 1][col] = grid[row][col]
-                        moved = True
-                    else:
-                        # Token stays in place
-                        new_grid[row][col] = grid[row][col]
-
-        # Update grid with new state
+        # Clear grid
         for row in range(rows):
             for col in range(cols):
-                grid[row][col] = new_grid[row][col]
+                grid[row][col] = None
 
-        if not moved:
-            self._animating = False
+        # Process each token based on OLD grid state
+        for row in range(rows):
+            for col in range(cols):
+                if old_grid[row][col] is not None:
+                    # Check if can move down exactly ONE cell (based on OLD grid)
+                    if row < rows - 1 and old_grid[row + 1][col] is None:
+                        # Move down exactly ONE cell
+                        grid[row + 1][col] = old_grid[row][col]
+                    else:
+                        # Stay in place
+                        grid[row][col] = old_grid[row][col]
+
+        # For Weak Gravity, we ONLY move one step per turn, so stop animation after one step
+        self._animating = False
+        self._animation_started = False  # Reset for next turn
 
 class ConnectTacToeModel:
     def __init__(self, win_condition: WinCondition, token_physics: TokenPhysics) -> None:
