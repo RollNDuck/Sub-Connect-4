@@ -34,11 +34,13 @@ class ConnectTacToeController:
             self._model.choose_cell(row, col)
 
     def draw(self) -> None:
+        """Draw the current game state."""
         grid: list[list[Player | None]] = self._model.get_grid
         self._view.draw_game(
             grid,
             self._model.current_player,
             self._model.winner,
             self._model.is_game_done,
-            self._model.both_players_won
+            self._model.both_players_won,
+            self._model.is_animating
         )

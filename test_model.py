@@ -436,5 +436,121 @@ class TestIntegration:
         assert model.winner == Player.P1
 
 
+    def test_all_win_condition_combinations(self) -> None:
+        """Test all combinations of win conditions and physics."""
+        win_conditions = [TicTacToeWinCondition(), NotConnectFourWinCondition()]
+        physics_types = [FloatingTokenPhysics(), StrongGravityTokenPhysics(), WeakGravityTokenPhysics()]
+        
+        for win_cond in win_conditions:
+            for physics in physics_types:
+                model = ConnectTacToeModel(win_cond, physics)
+                
+                # Test basic functionality
+                assert model.current_player == Player.P1
+                assert model.winner is None
+                assert not model.is_game_done
+                assert model.row_count == 6
+                assert model.col_count == 7
+                
+                # Test valid move
+                assert model.choose_cell(0, 0)
+                assert model.get_owner(0, 0) == Player.P1
+                
+                # Test invalid moves
+                assert not model.choose_cell(0, 0)  # Occupied
+                assert not model.choose_cell(-1, 0)  # Out of bounds
+                assert not model.choose_cell(6, 0)  # Out of bounds
+                assert not model.choose_cell(0, 7)  # Out of bounds
+
+    def test_physics_animation_states(self) -> None:
+        """Test physics animation state management."""
+        # Test Strong Gravity animation
+        model = ConnectTacToeModel(TicTacToeWinCondition(), StrongGravityTokenPhysics())
+        model.choose_cell(0, 0)
+        assert model.is_animating
+        wait_until_settled(model)
+        assert not model.is_animating
+        assert model.get_owner(5, 0) == Player.P1
+        
+        # Test Weak Gravity animation
+        model = ConnectTacToeModel(TicTacToeWinCondition(), WeakGravityTokenPhysics())
+        model.choose_cell(0, 1)
+        assert model.is_animating
+        wait_until_settled(model)
+        assert not model.is_animating
+        assert model.get_owner(1, 1) == Player.P1
+        
+        # Test Floating (no animation)
+        model = ConnectTacToeModel(TicTacToeWinCondition(), FloatingTokenPhysics())
+        model.choose_cell(0, 2)
+        assert not model.is_animating
+        assert model.get_owner(0, 2) == Player.P1
+
+    def test_edge_case_coordinates(self) -> None:
+        """Test edge case coordinate handling."""
+        model = ConnectTacToeModel(TicTacToeWinCondition(), FloatingTokenPhysics())
+        
+        # Test boundary coordinates
+        assert model.choose_cell(0, 0)  # Top-left
+        assert model.choose_cell(5, 6)  # Bottom-right
+        assert model.get_owner(0, 0) == Player.P1
+        assert model.get_owner(5, 6) == Player.P2
+        
+        # Test invalid coordinates
+        assert not model.choose_cell(-1, -1)
+        assert not model.choose_cell(6, 7)
+        assert not model.choose_cell(0, -1)
+        assert not model.choose_cell(-1, 0)
+
+    def test_simultaneous_win_scenarios(self) -> None:
+        """Test scenarios where both players could win simultaneously."""
+        # Test with NotConnectFour
+        model = ConnectTacToeModel(NotConnectFourWinCondition(), FloatingTokenPhysics())
+        
+        # Create a scenario where both players have 4+ connected tokens
+        for row in range(4):
+            model._grid[row][0] = Player.P1
+            model._grid[row][6] = Player.P2
+        
+        model._finish_turn()
+        assert model.both_players_won
+        assert model.winner is None
+        assert model.is_game_done
+
+    def test_draw_scenarios(self) -> None:
+        """Test draw scenarios (full grid, no winner)."""
+        model = ConnectTacToeModel(TicTacToeWinCondition(), FloatingTokenPhysics())
+        
+        # Fill grid without creating a winning condition
+        for row in range(6):
+            for col in range(7):
+                if (row + col) % 2 == 0:
+                    model._grid[row][col] = Player.P1
+                else:
+                    model._grid[row][col] = Player.P2
+        
+        model._finish_turn()
+        assert model.winner is None
+        assert model.is_game_done
+        assert not model.both_players_won
+
+    def test_physics_with_complex_patterns(self) -> None:
+        """Test physics with complex token patterns."""
+        # Test Strong Gravity with multiple tokens
+        model = ConnectTacToeModel(NotConnectFourWinCondition(), StrongGravityTokenPhysics())
+        
+        # Place tokens in different columns
+        model.choose_cell(0, 0)  # P1
+        wait_until_settled(model)
+        model.choose_cell(0, 1)  # P2
+        wait_until_settled(model)
+        model.choose_cell(0, 0)  # P1 (should stack)
+        wait_until_settled(model)
+        
+        assert model.get_owner(5, 0) == Player.P1
+        assert model.get_owner(4, 0) == Player.P1
+        assert model.get_owner(5, 1) == Player.P2
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
