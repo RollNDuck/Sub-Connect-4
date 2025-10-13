@@ -6,7 +6,8 @@
     "view.py",
     "main.py",
     "tester.py",
-    "common_types.py"
+    "common_types.py",
+    "test_model.py"
   ],
   "exclude": [
     "**/.venv",
