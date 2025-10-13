@@ -1,38 +1,45 @@
+# pyright: reportPrivateUsage=false
 from common_types import Player
-from model import (TicTacToeWinCondition, NotConnectFourWinCondition, FloatingTokenPhysics,
-    StrongGravityTokenPhysics, WeakGravityTokenPhysics, ConnectTacToeModel,
+from model import (
+    TicTacToeWinCondition,
+    NotConnectFourWinCondition,
+    FloatingTokenPhysics,
+    StrongGravityTokenPhysics,
+    WeakGravityTokenPhysics,
+    ConnectTacToeModel,
 )
 
+
 class TestTicTacToeWinCondition:
-    def test_TicTacToeRow(self) -> None:
+    def test_row_win(self) -> None:
         win_condition = TicTacToeWinCondition()
-        grid: list[list[None | Player]] = [[None for _ in range(3)] for _ in range (3)]
+        grid: list[list[Player | None]] = [[None for _ in range(3)] for _ in range(3)]
         grid[0] = [Player.P1, Player.P1, Player.P1]
 
         assert win_condition.is_winner(grid) == Player.P1
         assert win_condition.did_both_win(grid) == (True, False)
-        assert win_condition._did_player_win(grid, Player.P1) #type: ignore
+        assert win_condition._did_player_win(grid, Player.P1)
 
-    def test_TicTacToeCol(self) -> None:
+    def test_col_win(self) -> None:
         win_condition = TicTacToeWinCondition()
-        grid: list[list[None | Player]] = [[None for _ in range(3)] for _ in range (3)]
+        grid: list[list[Player | None]] = [[None for _ in range(3)] for _ in range(3)]
         grid[0][2] = Player.P2
         grid[1][2] = Player.P2
         grid[2][2] = Player.P2
 
         assert win_condition.is_winner(grid) == Player.P2
         assert win_condition.did_both_win(grid) == (False, True)
-        assert not win_condition._did_player_win(grid, Player.P1) #type: ignore
+        assert not win_condition._did_player_win(grid, Player.P1)
 
-    def test_TicTacToe_no_win(self) -> None:
+    def test_no_win(self) -> None:
         win_condition = TicTacToeWinCondition()
-        grid: list[list[None | Player]] = [[None for _ in range(3)] for _ in range (3)]
+        grid: list[list[Player | None]] = [[None for _ in range(3)] for _ in range(3)]
 
         assert win_condition.is_winner(grid) is None
 
-    def test_TicTacToe_both_win(self) -> None:
+    def test_both_win(self) -> None:
         win_condition = TicTacToeWinCondition()
-        grid: list[list[None | Player]] = [[None for _ in range(3)] for _ in range (3)]
+        grid: list[list[Player | None]] = [[None for _ in range(3)] for _ in range(3)]
         grid[0][2] = Player.P2
         grid[1][2] = Player.P2
         grid[2][2] = Player.P2
@@ -42,19 +49,20 @@ class TestTicTacToeWinCondition:
 
         assert win_condition.is_winner(grid) is None
 
+
 class TestNotConnectFourWin:
-    def test_notconnectfourow(self) -> None:
+    def test_row_win(self) -> None:
         win_condition = NotConnectFourWinCondition()
-        grid: list[list[None | Player]] = [[None for _ in range(4)] for _ in range (4)]
+        grid: list[list[Player | None]] = [[None for _ in range(4)] for _ in range(4)]
         grid[0] = [Player.P1, Player.P1, Player.P1, Player.P1]
 
         assert win_condition.is_winner(grid) == Player.P1
         assert win_condition.did_both_win(grid) == (True, False)
-        assert win_condition._did_player_win(grid, Player.P1) #type: ignore
+        assert win_condition._did_player_win(grid, Player.P1)
 
-    def test_notconnectfourcol(self) -> None:
+    def test_col_win(self) -> None:
         win_condition = NotConnectFourWinCondition()
-        grid: list[list[None | Player]] = [[None for _ in range(4)] for _ in range (4)]
+        grid: list[list[Player | None]] = [[None for _ in range(4)] for _ in range(4)]
         grid[0][2] = Player.P2
         grid[1][2] = Player.P2
         grid[2][2] = Player.P2
@@ -62,17 +70,17 @@ class TestNotConnectFourWin:
 
         assert win_condition.is_winner(grid) == Player.P2
         assert win_condition.did_both_win(grid) == (False, True)
-        assert not win_condition._did_player_win(grid, Player.P1) #type: ignore
+        assert not win_condition._did_player_win(grid, Player.P1)
 
-    def test_notconnectfour_no_winner(self) -> None:
+    def test_no_winner(self) -> None:
         win_condition = NotConnectFourWinCondition()
-        grid: list[list[None | Player]] = [[None for _ in range(4)] for _ in range (4)]
+        grid: list[list[Player | None]] = [[None for _ in range(4)] for _ in range(4)]
 
         assert win_condition.is_winner(grid) is None
 
-    def test_notconnectfour_both_win(self) -> None:
+    def test_both_win(self) -> None:
         win_condition = NotConnectFourWinCondition()
-        grid: list[list[None | Player]] = [[None for _ in range(4)] for _ in range (4)]
+        grid: list[list[Player | None]] = [[None for _ in range(4)] for _ in range(4)]
         grid[0][2] = Player.P2
         grid[1][2] = Player.P2
         grid[2][2] = Player.P2
@@ -85,16 +93,39 @@ class TestNotConnectFourWin:
 
         assert win_condition.is_winner(grid) is None
 
+    def test_no_adjacent_group(self) -> None:
+        win_condition = NotConnectFourWinCondition()
+        grid: list[list[Player | None]] = [[None for _ in range(4)] for _ in range(4)]
+        grid[0][0] = Player.P1
+        grid[0][2] = Player.P1
+        grid[2][0] = Player.P1
+        grid[2][2] = Player.P1
+
+        assert not win_condition._did_player_win(grid, Player.P1)
+        assert win_condition.is_winner(grid) is None
+
+    def test_diagonal_not_win(self) -> None:
+        win_condition = NotConnectFourWinCondition()
+        grid: list[list[Player | None]] = [[None for _ in range(4)] for _ in range(4)]
+        grid[0][0] = Player.P1
+        grid[1][1] = Player.P1
+        grid[2][2] = Player.P1
+        grid[3][3] = Player.P1
+
+        assert not win_condition._did_player_win(grid, Player.P1)
+
+
 class TestTokenPhysics:
     def test_floating_token_physics(self) -> None:
         token_physics = FloatingTokenPhysics()
-        token_physics.apply_physics([])
+        grid: list[list[Player | None]] = []
+        token_physics.apply_physics(grid)
         assert not token_physics.is_falling()
-        token_physics.token_falling([])
+        token_physics.token_falling(grid)
 
     def test_strong_gravity_token_physics(self) -> None:
         token_physics = StrongGravityTokenPhysics()
-        grid: list[list[None | Player]]= [[None for _ in range(2)] for _ in range(2)]
+        grid: list[list[Player | None]] = [[None for _ in range(2)] for _ in range(2)]
         grid[0][0] = Player.P1
 
         token_physics.apply_physics(grid)
@@ -104,9 +135,37 @@ class TestTokenPhysics:
         token_physics.token_falling(grid)
         assert not token_physics.is_falling()
 
+    def test_strong_gravity_no_falling_needed(self) -> None:
+        token_physics = StrongGravityTokenPhysics()
+        grid: list[list[Player | None]] = [[None for _ in range(2)] for _ in range(2)]
+        grid[1][0] = Player.P1
+        grid[1][1] = Player.P2
+
+        token_physics.apply_physics(grid)
+        assert not token_physics.is_falling()
+
+    def test_strong_gravity_multiple_columns(self) -> None:
+        token_physics = StrongGravityTokenPhysics()
+        grid: list[list[Player | None]] = [[None for _ in range(3)] for _ in range(3)]
+        grid[0][0] = Player.P1
+        grid[0][1] = Player.P2
+        grid[2][1] = Player.P1
+
+        token_physics.apply_physics(grid)
+        assert token_physics.is_falling()
+
+    def test_strong_gravity_break_inner_loop(self) -> None:
+        token_physics = StrongGravityTokenPhysics()
+        grid: list[list[Player | None]] = [[None for _ in range(3)] for _ in range(3)]
+        grid[0][2] = Player.P1
+        grid[1][2] = None
+
+        token_physics.apply_physics(grid)
+        assert token_physics.is_falling()
+
     def test_weak_gravity_token_physics(self) -> None:
         token_physics = WeakGravityTokenPhysics()
-        grid: list[list[None | Player]]= [[None for _ in range(3)] for _ in range(3)]
+        grid: list[list[Player | None]] = [[None for _ in range(3)] for _ in range(3)]
         grid[0][0] = Player.P1
         grid[2][0] = Player.P2
 
@@ -116,6 +175,42 @@ class TestTokenPhysics:
         assert grid[1][0] == Player.P1
         assert grid[2][0] == Player.P2
         assert not token_physics.is_falling()
+
+    def test_weak_gravity_no_falling_needed(self) -> None:
+        token_physics = WeakGravityTokenPhysics()
+        grid: list[list[Player | None]] = [[None for _ in range(3)] for _ in range(3)]
+        grid[2][0] = Player.P1
+        grid[2][1] = Player.P2
+
+        token_physics.apply_physics(grid)
+        assert not token_physics.is_falling()
+
+    def test_weak_gravity_cascading_tokens(self) -> None:
+        token_physics = WeakGravityTokenPhysics()
+        grid: list[list[Player | None]] = [[None for _ in range(4)] for _ in range(4)]
+        grid[0][0] = Player.P1
+        grid[1][0] = Player.P2
+        grid[2][0] = Player.P1
+
+        token_physics.apply_physics(grid)
+        assert token_physics.is_falling()
+        token_physics.token_falling(grid)
+
+        assert grid[1][0] == Player.P1
+        assert grid[2][0] == Player.P2
+        assert grid[3][0] == Player.P1
+
+    def test_weak_gravity_no_moves(self) -> None:
+        token_physics = WeakGravityTokenPhysics()
+        grid: list[list[Player | None]] = [[None for _ in range(3)] for _ in range(3)]
+        grid[2][0] = Player.P1
+        grid[1][0] = Player.P2
+        grid[0][0] = Player.P1
+
+        token_physics.apply_physics(grid)
+        token_physics.token_falling(grid)
+        assert not token_physics.is_falling()
+
 
 class TestConnectTacToeModel:
     def test_model_init(self) -> None:
@@ -148,12 +243,12 @@ class TestConnectTacToeModel:
 
     def test_model_both_win(self) -> None:
         model = ConnectTacToeModel(TicTacToeWinCondition(), FloatingTokenPhysics())
-        grid: list[list[None | Player]] = [[None for _ in range(7)] for _ in range(6)]
+        grid: list[list[Player | None]] = [[None for _ in range(7)] for _ in range(6)]
         grid[1] = [Player.P1 for _ in range(7)]
         grid[0] = [Player.P2 for _ in range(7)]
 
-        model._grid = grid #type: ignore
-        model._turn_ended() #type: ignore
+        model._grid = grid
+        model._turn_ended()
 
         assert model.both_players_won
         assert model.winner is None
@@ -162,20 +257,20 @@ class TestConnectTacToeModel:
         win_condition = TicTacToeWinCondition()
         token_physics = StrongGravityTokenPhysics()
         model = ConnectTacToeModel(win_condition, token_physics)
-        model._grid = [[None for _ in range(7)] for _ in range(6)] #type: ignore
-        model._grid[0][0] = Player.P1 #type: ignore
-        token_physics.apply_physics(model._grid) #type: ignore
+        model._grid = [[None for _ in range(7)] for _ in range(6)]
+        model._grid[0][0] = Player.P1
+        token_physics.apply_physics(model._grid)
 
         assert token_physics.is_falling()
         assert not model.choose_cell(0, 3)
 
-        model._turn_end = True #type: ignore
+        model._turn_end = True
 
         while model.is_falling:
             model.token_physics()
 
         assert not model.is_falling
-        assert not model._turn_end #type: ignore
+        assert not model._turn_end
 
     def test_choose_cell_out_bounds(self) -> None:
         win_condition = TicTacToeWinCondition()
@@ -187,19 +282,19 @@ class TestConnectTacToeModel:
         win_condition = TicTacToeWinCondition()
         token_physics = StrongGravityTokenPhysics()
         model = ConnectTacToeModel(win_condition, token_physics)
-        model._grid = [[None for _ in range(7)] for _ in range(6)] #type: ignore
-        model._grid[1][0] = None #type: ignore
+        model._grid = [[None for _ in range(7)] for _ in range(6)]
+        model._grid[1][0] = None
         model.choose_cell(0, 0)
 
-        assert model._turn_end #type: ignore
+        assert model._turn_end
         assert token_physics.is_falling()
 
     def test_turn_ended_p1_wins(self) -> None:
         win_condition = TicTacToeWinCondition()
         token_physics = StrongGravityTokenPhysics()
         model = ConnectTacToeModel(win_condition, token_physics)
-        model._grid = [[Player.P1 for _ in range(7)] for _ in range(6)] #type: ignore
-        model._turn_ended() #type: ignore
+        model._grid = [[Player.P1 for _ in range(7)] for _ in range(6)]
+        model._turn_ended()
 
         assert model.winner == Player.P1
         assert model.is_game_done
@@ -208,9 +303,9 @@ class TestConnectTacToeModel:
         win_condition = TicTacToeWinCondition()
         token_physics = FloatingTokenPhysics()
         model = ConnectTacToeModel(win_condition, token_physics)
-        model._grid = [[None for _ in range(7)] for _ in range(6)] #type: ignore
-        model._grid[0] = [Player.P2 for _ in range(7)] #type: ignore
-        model._turn_ended() #type: ignore
+        model._grid = [[None for _ in range(7)] for _ in range(6)]
+        model._grid[0] = [Player.P2 for _ in range(7)]
+        model._turn_ended()
 
         assert model.winner == Player.P2
         assert model.is_game_done
@@ -219,8 +314,8 @@ class TestConnectTacToeModel:
         win_condition = TicTacToeWinCondition()
         token_physics = FloatingTokenPhysics()
         model = ConnectTacToeModel(win_condition, token_physics)
-        model._grid = [["Hello" for _ in range(7)] for _ in range(6)] #type: ignore
-        model._turn_ended() #type: ignore
+        model._grid = [[Player.P1 if (i + j) % 2 == 0 else Player.P2 for j in range(7)] for i in range(6)]
+        model._turn_ended()
 
         assert model.is_game_done
 
@@ -228,9 +323,48 @@ class TestConnectTacToeModel:
         win_condition = TicTacToeWinCondition()
         token_physics = FloatingTokenPhysics()
         model = ConnectTacToeModel(win_condition, token_physics)
-        model._grid = [[None for _ in range(7)] for _ in range(6)] #type: ignore
+        model._grid = [[None for _ in range(7)] for _ in range(6)]
 
-        model._current_player = Player.P2 #type: ignore
-        model._turn_ended() #type: ignore
+        model._current_player = Player.P2
+        model._turn_ended()
 
         assert model.current_player == Player.P1
+
+    def test_token_physics_not_falling(self) -> None:
+        win_condition = TicTacToeWinCondition()
+        token_physics = FloatingTokenPhysics()
+        model = ConnectTacToeModel(win_condition, token_physics)
+
+        model.token_physics()
+        assert not model.is_falling
+
+    def test_token_physics_completes_turn(self) -> None:
+        win_condition = TicTacToeWinCondition()
+        token_physics = StrongGravityTokenPhysics()
+        model = ConnectTacToeModel(win_condition, token_physics)
+
+        model._grid = [[None for _ in range(7)] for _ in range(6)]
+        model._grid[0][0] = Player.P1
+        model._turn_end = True
+        token_physics.apply_physics(model._grid)
+
+        while model.is_falling:
+            model.token_physics()
+
+        assert not model._turn_end
+
+    def test_choose_cell_game_done(self) -> None:
+        win_condition = TicTacToeWinCondition()
+        token_physics = FloatingTokenPhysics()
+        model = ConnectTacToeModel(win_condition, token_physics)
+
+        model._is_game_done = True
+        assert not model.choose_cell(0, 0)
+
+    def test_choose_cell_row_bounds(self) -> None:
+        model = ConnectTacToeModel(TicTacToeWinCondition(), FloatingTokenPhysics())
+        assert not model.choose_cell(10, 0)
+
+    def test_choose_cell_col_bounds(self) -> None:
+        model = ConnectTacToeModel(TicTacToeWinCondition(), FloatingTokenPhysics())
+        assert not model.choose_cell(0, 10)
