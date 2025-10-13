@@ -266,7 +266,7 @@ class ConnectTacToeModel:
             return False
         if self._grid[row][col] is not None:
             return False
-        
+
         self._grid[row][col] = self._current_player
 
         self._token_physics.apply_physics(self._grid)

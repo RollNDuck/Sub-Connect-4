@@ -35,7 +35,7 @@ class ConnectTacToeController:
         view: ConnectTacToeView = self._view
         model: ConnectTacToeModel = self._model
         grid: list[list[Player | None]] = self._model.get_grid
-    
+
         view.clear_screen()
         view.draw_grid(grid)
 

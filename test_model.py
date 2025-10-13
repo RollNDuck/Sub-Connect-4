@@ -140,7 +140,7 @@ class TestConnectTacToeModel:
         model = ConnectTacToeModel(TicTacToeWinCondition(), FloatingTokenPhysics())
         assert model.choose_cell(0, 0)
         assert not model.choose_cell(0, 0)
-    
+
     def test_model_grid_full(self) -> None:
         model = ConnectTacToeModel(TicTacToeWinCondition(), FloatingTokenPhysics())
         grid: list[list[Player | None]] = [[Player.P1 for _ in range(7)] for _ in range(6)]
@@ -151,7 +151,7 @@ class TestConnectTacToeModel:
         grid: list[list[None | Player]] = [[None for _ in range(7)] for _ in range(6)]
         grid[1] = [Player.P1 for _ in range(7)]
         grid[0] = [Player.P2 for _ in range(7)]
-        
+
         model._grid = grid #type: ignore
         model._turn_ended() #type: ignore
 
@@ -165,12 +165,12 @@ class TestConnectTacToeModel:
         model._grid = [[None for _ in range(7)] for _ in range(6)] #type: ignore
         model._grid[0][0] = Player.P1 #type: ignore
         token_physics.apply_physics(model._grid) #type: ignore
-        
+
         assert token_physics.is_falling()
         assert not model.choose_cell(0, 3)
 
         model._turn_end = True #type: ignore
-        
+
         while model.is_falling:
             model.token_physics()
 

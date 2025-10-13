@@ -32,7 +32,7 @@ class ConnectTacToeView:
 
     def start_game(self, update: Callable[[], None], draw: Callable[[], None]) -> None:
         pyxel.run(update, draw)
-    
+
     def clear_screen(self) -> None:
         pyxel.cls(0)
 
