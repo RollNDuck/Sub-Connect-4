@@ -6,19 +6,9 @@ from controller import ConnectTacToeController
 from tester import make
 
 if __name__ == "__main__":
-    parser = ArgumentParser(description="Connect-Tac-Toe Game")
-    parser.add_argument(
-        "-w",
-        choices=["notconnectfour", "tictactoe"],
-        required=True,
-        help="Win condition: 'notconnectfour' or 'tictactoe'"
-    )
-    parser.add_argument(
-        "-p",
-        choices=["floating", "strong", "weak"],
-        required=True,
-        help="Token physics: 'floating', 'strong', or 'weak'"
-    )
+    parser = ArgumentParser()
+    parser.add_argument("-w", choices = ["notconnectfour", "tictactoe"])
+    parser.add_argument("-p", choices = ["floating", "strong", "weak"])
     args = parser.parse_args()
 
     win_condition_type: WinConditionType
@@ -28,7 +18,7 @@ if __name__ == "__main__":
         case "tictactoe":
             win_condition_type = WinConditionType.TIC_TAC_TOE
         case _:
-            raise ValueError(f"Invalid win condition: {args.w}")
+            raise ValueError(f"Invalid Win Condition")
 
     token_physics_type: TokenPhysicsType
     match args.p:
@@ -39,7 +29,7 @@ if __name__ == "__main__":
         case "weak":
             token_physics_type = TokenPhysicsType.WEAK_GRAVITY
         case _:
-            raise ValueError(f"Invalid physics type: {args.p}")
+            raise ValueError(f"Invalid Token Physics")
 
     model = make(win_condition_type, token_physics_type)
     view = ConnectTacToeView()

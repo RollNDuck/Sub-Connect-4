@@ -4,19 +4,26 @@ from typing import Callable
 
 class ConnectTacToeView:
     def __init__(self) -> None:
+        #screen settings
         self.screen_width: int = 200
         self.screen_height: int = 200
 
+        #number of rows and columns of grid
         self.row: int = 6
         self.col: int = 7
 
+        #size of cell in grid
         self.cell_size: int = 25
+
+        #size of grid
         self.grid_height: int = self.cell_size * self.row
         self.grid_width: int = self.cell_size * self.col
 
+        #position of grid (centered)
         self.grid_x: int = (200 - self.grid_width) // 2
         self.grid_y: int = (200 - self.grid_height) // 2 + 15
 
+        #color of players
         self.player1_color: int = 2
         self.player2_color: int = 5
 
@@ -25,11 +32,9 @@ class ConnectTacToeView:
 
     def start_game(self, update: Callable[[], None], draw: Callable[[], None]) -> None:
         pyxel.run(update, draw)
-
-    def draw_game(self, grid: list[list[Player | None]], cur_player: Player, winner: Player | None, game_over: bool, both_won: bool) -> None:
+    
+    def clear_screen(self) -> None:
         pyxel.cls(0)
-        self.draw_grid(grid)
-        self.draw_messages(cur_player, winner, game_over, both_won)
 
     def draw_grid(self, grid: list[list[Player | None]]) -> None:
         for row in range(self.row):
@@ -44,9 +49,9 @@ class ConnectTacToeView:
                     self._draw_token(x, y, player_token)
 
     def _draw_token(self, x: int, y: int, player_token: Player) -> None:
-        middle_x: float = self.cell_size / 2 + x
-        middle_y: float = self.cell_size / 2 + y
-        radius: float = self.cell_size / 3
+        middle_x: int = self.cell_size // 2 + x
+        middle_y: int = self.cell_size // 2 + y
+        radius: int = self.cell_size // 3
         player_color: int = self._cur_player_color(player_token)
         pyxel.circ(middle_x, middle_y, radius, player_color)
 
@@ -72,27 +77,24 @@ class ConnectTacToeView:
         return (self.grid_x <= x <= self.grid_x + self.grid_width and
                 self.grid_y <= y <= self.grid_y + self.grid_height)
 
-    def draw_messages(self, cur_player: Player, winner: Player | None, game_over: bool, both_won: bool) -> None:
-        y_coord: int = 15
+    def draw_turn_message(self, cur_player: Player, y_coord: int = 15) -> None:
+        player_color: int = self._cur_player_color(cur_player)
+        turn_message: str = f"Your turn, {str(cur_player)}!"
+        x_coord: int = (self.screen_width // 2) - len(turn_message) * 2
+        pyxel.text(x_coord, y_coord, turn_message, player_color)
 
-        if not game_over:  # current player turn message
-            player_color: int = self._cur_player_color(cur_player)
-            turn_message: str = f"Your turn, {str(cur_player)}!"
-            x_coord: int = (self.screen_width // 2) - len(turn_message) * 2
-            pyxel.text(x_coord, y_coord, turn_message, player_color)
+    def draw_both_winner_message(self, y_coord: int = 15) -> None:
+        message: str = "Both players won!"
+        x_coord: int = (self.screen_width // 2) - len(message) * 2
+        pyxel.text(x_coord, y_coord, message, 10)  # white color
 
-        elif both_won:  # Both players won simultaneously
-            message: str = "Both players won!"
-            x_coord: int = (self.screen_width // 2) - len(message) * 2
-            pyxel.text(x_coord, y_coord, message, 10)  # White color
+    def draw_winner_message(self, winner: Player, y_coord: int = 15) -> None:
+        winner_color: int = self._cur_player_color(winner)
+        win_message: str = f"The winner is, {str(winner)}!"
+        x_coord: int = (self.screen_width // 2) - len(win_message) * 2
+        pyxel.text(x_coord, y_coord, win_message, winner_color)
 
-        elif winner is not None:  # Single winner message
-            winner_color: int = self._cur_player_color(winner)
-            win_message: str = f"The winner is, {str(winner)}!"
-            x_coord: int = (self.screen_width // 2) - len(win_message) * 2
-            pyxel.text(x_coord, y_coord, win_message, winner_color)
-
-        else:  # Draw - no winner and grid full
-            message: str = "No winner!"
-            x_coord: int = (self.screen_width // 2) - len(message) * 2
-            pyxel.text(x_coord, y_coord, message, 8)  # red/pinkish
+    def draw_no_winner_message(self, y_coord: int = 15) -> None:
+        message: str = "No winner!"
+        x_coord: int = (self.screen_width // 2) - len(message) * 2
+        pyxel.text(x_coord, y_coord, message, 8)  # red/pinkish
