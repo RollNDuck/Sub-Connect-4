@@ -3,11 +3,9 @@ name: Pytest with Coverage
 on:
   push:
     branches:
-      - v1
       - Backup
   pull_request:
     branches:
-      - v1
       - Backup
   workflow_dispatch:
 
