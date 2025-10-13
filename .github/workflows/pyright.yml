@@ -5,10 +5,12 @@ on:
     branches:
       - main
       - v1
+      - Backup
   pull_request:
     branches:
       - main
       - v1
+      - Backup
   workflow_dispatch:
 
 jobs:
