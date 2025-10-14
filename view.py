@@ -50,13 +50,11 @@ class ConnectTacToeView:
                     self._draw_token(x, y, player_token)
 
     def _draw_token(self, x: int, y: int, player_token: Player) -> None:
-        # choose which sprite to draw depending on player
         if player_token == Player.P1:
-            # source coordinates and size in the .pyxres image bank
-            u, v, w, h = 0, 0, 16, 16   # adjust based on your token’s position and size
-            img_bank = 0                # usually 0 if you saved in the first image bank
+            u, v, w, h = 0, 0, 16, 16
+            img_bank = 0
         else:
-            u, v, w, h = 24, 0, 16, 16  # second token image
+            u, v, w, h = 24, 0, 16, 16
             img_bank = 0
 
         # compute where to place it (centered in the grid cell)
