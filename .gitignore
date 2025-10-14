@@ -1,0 +1,15 @@
+# Python bytecode caches
+__pycache__/
+
+# Pytest cache
+.pytest_cache/
+
+# Virtual environments
+.venv/
+venv/
+game/venv/
+
+# Coverage reports
+.coverage
+htmlcov/
+
