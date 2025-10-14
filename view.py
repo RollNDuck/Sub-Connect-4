@@ -24,11 +24,12 @@ class ConnectTacToeView:
         self.grid_y: int = (200 - self.grid_height) // 2 + 15
 
         #color of players
-        self.player1_color: int = 2
-        self.player2_color: int = 5
+        self.player1_color: int = 7
+        self.player2_color: int = 9
 
         pyxel.init(self.screen_width, self.screen_height)
         pyxel.mouse(True)
+        pyxel.load('subconnectfour.pyxres')
 
     def start_game(self, update: Callable[[], None], draw: Callable[[], None]) -> None:
         pyxel.run(update, draw)
@@ -49,11 +50,20 @@ class ConnectTacToeView:
                     self._draw_token(x, y, player_token)
 
     def _draw_token(self, x: int, y: int, player_token: Player) -> None:
-        middle_x: int = self.cell_size // 2 + x
-        middle_y: int = self.cell_size // 2 + y
-        radius: int = self.cell_size // 3
-        player_color: int = self._cur_player_color(player_token)
-        pyxel.circ(middle_x, middle_y, radius, player_color)
+        # choose which sprite to draw depending on player
+        if player_token == Player.P1:
+            # source coordinates and size in the .pyxres image bank
+            u, v, w, h = 0, 0, 16, 16   # adjust based on your token’s position and size
+            img_bank = 0                # usually 0 if you saved in the first image bank
+        else:
+            u, v, w, h = 24, 0, 16, 16  # second token image
+            img_bank = 0
+
+        # compute where to place it (centered in the grid cell)
+        draw_x = x + (self.cell_size - w) // 2
+        draw_y = y + (self.cell_size - h) // 2
+
+        pyxel.blt(draw_x, draw_y, img_bank, u, v, w, h, colkey=0)
 
     def _cur_player_color(self, player: Player) -> int:
         if player == Player.P1:
