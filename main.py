@@ -7,8 +7,8 @@ from tester import make
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("-w", choices = ["notconnectfour", "tictactoe"])
-    parser.add_argument("-p", choices = ["floating", "strong", "weak"])
+    parser.add_argument("-w", choices = ["notconnectfour", "tictactoe", "connectfour"])
+    parser.add_argument("-p", choices = ["floating", "strong", "weak", "twosides"])
     args = parser.parse_args()
 
     win_condition_type: WinConditionType
@@ -17,6 +17,8 @@ if __name__ == "__main__":
             win_condition_type = WinConditionType.NOT_CONNECT_FOUR
         case "tictactoe":
             win_condition_type = WinConditionType.TIC_TAC_TOE
+        case "connectfour":
+            win_condition_type = WinConditionType.CONNECT_FOUR
         case _:
             raise ValueError(f"Invalid Win Condition")
 
@@ -28,6 +30,8 @@ if __name__ == "__main__":
             token_physics_type = TokenPhysicsType.STRONG_GRAVITY
         case "weak":
             token_physics_type = TokenPhysicsType.WEAK_GRAVITY
+        case "twosides":
+            token_physics_type = TokenPhysicsType.TWO_SIDES
         case _:
             raise ValueError(f"Invalid Token Physics")
 

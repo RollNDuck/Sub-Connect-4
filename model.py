@@ -57,6 +57,76 @@ class TicTacToeWinCondition:
 
         return False
 
+class ConnectFourWinCondition:
+    def is_winner(self, grid: list[list[Player | None]]) -> Player | None:
+        p1_wins, p2_wins = self.did_both_win(grid)
+
+        if p1_wins and p2_wins:
+            return None
+        elif p1_wins:
+            return Player.P1
+        elif p2_wins:
+            return Player.P2
+        else:
+            return None
+
+    def did_both_win(self, grid: list[list[Player | None]]) -> tuple[bool, bool]:
+        p1_wins: bool = self._did_player_win(grid, Player.P1)
+        p2_wins: bool = self._did_player_win(grid, Player.P2)
+        return (p1_wins, p2_wins)
+
+    def _did_player_win(self, grid: list[list[Player | None]], player: Player) -> bool:
+        row_count: int = len(grid)
+        col_count: int = len(grid[0])
+
+        for row in range(row_count): #horizontal (four or more tokens in a row)
+            count: int = 0
+            for col in range(col_count):
+                if grid[row][col] == player:
+                    count += 1
+            if count >= 4:
+                return True
+
+        for col in range(col_count): #vertical (four or more tokens in a column)
+            count: int = 0
+            for row in range(row_count):
+                if grid[row][col] == player:
+                    count += 1
+            if count >= 4:
+                return True
+
+        for row in range(row_count): #right-diagonal (four or more tokens diagonally)
+            for col in range(col_count):
+                count: int = 0
+                diag_row = row
+                diag_col = col
+                while diag_row < row_count and diag_col < col_count:
+                    if grid[diag_row][diag_col] == player:
+                        count += 1
+                        if count >= 4:
+                            return True
+                    else:
+                        break
+                    diag_row += 1
+                    diag_col += 1
+
+        for row in range(row_count): #left-diagonal (four or more tokens diagonally)
+            for col in range(col_count):
+                count: int = 0
+                diag_row = row
+                diag_col = col
+                while diag_row < row_count and 0 <= diag_col < col_count:
+                    if grid[diag_row][diag_col] == player:
+                        count += 1
+                        if count >= 4:
+                            return True
+                    else:
+                        break
+                    diag_row += 1
+                    diag_col -= 1
+
+        return False
+
 class NotConnectFourWinCondition:
     def is_winner(self, grid: list[list[Player | None]]) -> Player | None:
         p1_wins, p2_wins = self.did_both_win(grid)
@@ -119,6 +189,60 @@ class FloatingTokenPhysics:
 
     def token_falling(self, grid: list[list[Player | None]]) -> None:
         pass
+
+class TwoSidesTokenPhysics:
+    def __init__(self) -> None:
+        self._is_falling: bool = False
+
+    def apply_physics(self, grid: list[list[Player | None]]) -> None:
+        rows: int = len(grid)
+        cols: int = len(grid[0])
+        can_fall: bool = False
+
+        for col in range(cols):
+            for row in range(1, 3):
+                if grid[row][col] is not None and grid[row - 1][col] is None:
+                    can_fall = True
+                    break
+            if can_fall:
+                break
+
+        if not can_fall:
+            for col in range(cols):
+                for row in range(3, rows - 1):
+                    if grid[row][col] is not None and grid[row + 1][col] is None:
+                        can_fall = True
+                        break
+                if can_fall:
+                    break
+
+        if can_fall:
+            self._is_falling = True
+
+    def is_falling(self) -> bool:
+        return self._is_falling
+
+    def token_falling(self, grid: list[list[Player | None]]) -> None:
+        rows: int = len(grid)
+        cols: int = len(grid[0])
+        moved: bool = False
+
+        for row in range(1, 3): #checks from the top until the middle
+            for col in range(cols):
+                if grid[row][col] is not None and grid[row - 1][col] is None:
+                    grid[row - 1][col] = grid[row][col]
+                    grid[row][col] = None
+                    moved = True
+
+        for row in range(rows - 2, 2, -1): #checks from bottom until the middle
+            for col in range(cols):
+                if grid[row][col] is not None and grid[row + 1][col] is None:
+                    grid[row + 1][col] = grid[row][col]
+                    grid[row][col] = None
+                    moved = True
+
+        if not moved:
+            self._is_falling = False
 
 class StrongGravityTokenPhysics:
     def __init__(self) -> None:

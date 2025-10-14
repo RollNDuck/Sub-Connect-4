@@ -1,4 +1,4 @@
-from model import ConnectTacToeModel, StrongGravityTokenPhysics, WeakGravityTokenPhysics, FloatingTokenPhysics, TicTacToeWinCondition, NotConnectFourWinCondition, WinCondition, TokenPhysics
+from model import ConnectTacToeModel, StrongGravityTokenPhysics, WeakGravityTokenPhysics, FloatingTokenPhysics, TicTacToeWinCondition, NotConnectFourWinCondition, WinCondition, TokenPhysics, ConnectFourWinCondition, TwoSidesTokenPhysics
 from common_types import WinConditionType, TokenPhysicsType
 
 def make(win_condition_type: WinConditionType, token_physics_type: TokenPhysicsType) -> ConnectTacToeModel:
@@ -8,6 +8,8 @@ def make(win_condition_type: WinConditionType, token_physics_type: TokenPhysicsT
             win_condition = NotConnectFourWinCondition()
         case WinConditionType.TIC_TAC_TOE:
             win_condition = TicTacToeWinCondition()
+        case WinConditionType.CONNECT_FOUR:
+            win_condition = ConnectFourWinCondition()
         case _:
             raise ValueError("Invalid Win Condition Type")
 
@@ -19,6 +21,8 @@ def make(win_condition_type: WinConditionType, token_physics_type: TokenPhysicsT
             token_physics = StrongGravityTokenPhysics()
         case TokenPhysicsType.FLOATING:
             token_physics = FloatingTokenPhysics()
+        case TokenPhysicsType.TWO_SIDES:
+            token_physics = TwoSidesTokenPhysics()
         case _:
             raise ValueError("Invalid Token Physics Type")
 
